@@ -65,8 +65,9 @@ int main()
 	VBO VBO1(vertices, sizeof(vertices));
 	EBO EBO1(indices, sizeof(indices));
 
-	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
-	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);
+	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
 	VAO1.Unbind();
 	VBO1.Unbind();
@@ -77,6 +78,7 @@ int main()
 	// texture
 	
 	int widthImg, heightImg, mumColCh;
+	stbi_set_flip_vertically_on_load(true);
 	unsigned char* bytes = stbi_load("pop_cat.png", &widthImg, &heightImg, &mumColCh, 0);
 
 	GLuint texture;
@@ -95,6 +97,10 @@ int main()
 	stbi_image_free(bytes);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	GLuint tex0Uni = glGetUniformLocation(shaderProgram.ID, "tex0");
+	shaderProgram.Activate();
+	glUniform1i(tex0Uni, 0);
+
 	//Enable wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -108,6 +114,7 @@ int main()
 		//tells opengl what shader program to use
 		shaderProgram.Activate();
 		glUniform1f(uniID, 0.0f);
+		glBindTexture(GL_TEXTURE_2D, texture);
 		//bind the vao so that opengl knows to use it
 		VAO1.Bind();
 		//draw the triangles using the primative GL_TRIANGLES
