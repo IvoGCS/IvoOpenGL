@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="IvoOpenGL.vcxproj" Id="8dc892ca-5438-415a-81b8-7be7710925aa" />
+</Solution>
