@@ -11,6 +11,7 @@
 #include"VAO.h"
 #include"VBO.h"
 #include"EBO.h"
+#include"Camera.h"
 
 
 unsigned int width = 800;
@@ -22,17 +23,22 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 //Vertices Coords
 GLfloat vertices[] =
 { // 	COORDINATES     /        COLORS
-	-0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,    0.0f, 0.0f, //Bottom left
-	-0.5f,  0.5f, 0.0f,   0.0f, 1.0f, 0.0f,    0.0f, 1.0f, //Top left
-	 0.5f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,    1.0f, 1.0f, //Top right
-	 0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,    1.0f, 0.0f, //Bottom right
+	-0.5f, -0.0f, 0.5f,		0.83f, 0.70f, 0.44f,	0.0f, 0.0f,
+	-0.5f,  0.0f, -0.5f,    0.83f, 0.70f, 0.44f,    5.0f, 0.0f,
+	 0.5f,  0.0f, -0.5f,    0.83f, 0.70f, 0.44f,    0.0f, 0.0f,
+	 0.5f,  0.0f,  0.5f,    0.83f, 0.70f, 0.44f,    5.0f, 0.0f,
+	 0.0f,  0.8f,  0.0f,    0.92f, 0.86f, 0.76f,    2.5f, 5.0f,
 
 };
 
 GLuint indices[] =
 {
-	0, 2, 1,
-	0, 3, 2,
+	0,1,2,
+	0,2,3,
+	0,1,4,
+	1,2,4,
+	2,3,4,
+	3,0,4
 };
 
 int main() 
@@ -57,6 +63,8 @@ int main()
 	}
 	//Tells GLFW to make the window current context
 	glfwMakeContextCurrent(window);
+
+	glfwSwapInterval(1);
 	//auto resizes window
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -82,7 +90,6 @@ int main()
 	VBO1.Unbind();
 	EBO1.Unbind();
 
-	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
 	// texture
 	//
@@ -111,9 +118,12 @@ int main()
 	//glUniform1i(tex0Uni, 0);
 
 
-	Texture popCat("pop_cat.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+	Texture popCat("brick.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
 	popCat.texUnit(shaderProgram, "tex0", 0);
 
+	glEnable(GL_DEPTH_TEST);
+
+	Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
 
 	//Enable wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -124,30 +134,18 @@ int main()
 		//sets bg colour
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		//cleans the back buffer
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//tells opengl what shader program to use
 		shaderProgram.Activate();
-		//initializes the matrixs
-		glm::mat4 model = glm::mat4(1.0f);
-		glm::mat4 view = glm::mat4(1.0f);
-		glm::mat4 proj = glm::mat4(1.0f);
 
-		view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
-		proj = glm::perspective(glm::radians(45.0f), (float)(width / height), 0.1f, 100.0f);
+		camera.Inputs(window);
+		camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
 
-		int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
-
-		glUniform1f(uniID, 0.0f);
 		popCat.Bind();
 		//bind the vao so that opengl knows to use it
 		VAO1.Bind();
 		//draw the triangles using the primative GL_TRIANGLES
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int), GL_UNSIGNED_INT, 0);
 
 		//swaps the front and back buffers
 		glfwSwapBuffers(window);
